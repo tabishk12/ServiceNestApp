@@ -4,7 +4,6 @@ workflows:
     environment:
       node: latest
       java: 17
-      android: latest
     scripts:
       - name: Install dependencies
         script: |
