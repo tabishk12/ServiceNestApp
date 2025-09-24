@@ -1,0 +1,122 @@
+import React, { useState } from 'react';
+import { useRegisterMutation } from '@slices/Api/authApi';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '@slices/authSlice';
+import { useNavigate } from 'react-router-dom';
+import InputBox from '../Utils/InputBox';
+
+const Register = () => {
+  const[errorMessage,setErrorMessage]=useState('');
+  const [form, setForm] = useState({ name: '', email: '',contact:'',location:'',image:'', password: '',confirmPassword: '' });
+  const [register,{isLoading} ] = useRegisterMutation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    if (form.password !== form.confirmPassword) {
+     return setErrorMessage('Passwords do not match');
+      
+    } else {
+    try {
+      const userData = await register(form).unwrap();
+      dispatch(setCredentials(userData));
+      console.log(userData);
+      navigate('/');
+    } catch (err) {
+      alert('Registration failed: ' + err?.data?.message || err.message);
+    }}
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-pink-100 to-purple-200 p-3">
+      <div className="w-full sm:max-w-lg md:max-w-3xl bg-white rounded-2xl shadow-2xl p-8">
+        <h2 className="text-3xl font-bold text-center text-purple-700 mb-6">Create Account</h2>
+        <form onSubmit={submitHandler} className="space-y-5">
+      <div className='md:grid grid-cols-2 gap-4 space-x-3 max-w-5xl'>
+        <InputBox
+                  type="text"
+                  label={'Full Name'}
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value },setErrorMessage(""))}
+                  placeholder="Your Name"
+                  required
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+        <InputBox
+                  label={"Enter-email"}
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value },setErrorMessage(""))}
+                  placeholder="you@example.com"
+                  required
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+          <InputBox
+                  type="text"
+                  label ={"Contact"}
+                  value={form.contact}
+                  onChange={(e) => setForm({ ...form, contact: e.target.value },setErrorMessage(""))}
+                  placeholder="+91-123456985"
+                  required
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+          <InputBox
+                  type="tel"
+                  label={"Location "}
+                  value={form.location}
+                  onChange={(e) => setForm({ ...form, location: e.target.value },setErrorMessage(""))}
+                  placeholder="location"
+                  required
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+          <InputBox
+                  type="text"
+                  label={"Add Image"}
+                  value={form.image}
+                  onChange={(e) => setForm({ ...form, image: e.target.value },setErrorMessage(""))}
+                  placeholder="Add Image Url"
+                  required
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+          <InputBox
+                  type="password"
+                  label={"Enter Password"}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value },setErrorMessage(""))}
+                  placeholder="Enter Password"
+                  required
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+          <InputBox
+                  type="password"
+                  label={"Re-Enter Password"}
+                  value={form.confirmPassword}
+                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value },setErrorMessage(""))}
+                  placeholder="Confirm Password"
+                  required
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+        </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-xl transition duration-200"
+              >
+                {isLoading ? 'Registering...' : 'Register'}
+              </button>
+            </form>
+
+            <p className="text-center text-sm text-gray-600 mt-4">
+              Already have an account?{' '}
+              <a href="/login" className="text-purple-600 hover:underline font-medium">
+                Login
+              </a>
+            </p>
+          <p className='text-red-500 text-center'>{errorMessage}</p>
+          </div>
+    </div>
+  );
+};
+
+export default Register;
