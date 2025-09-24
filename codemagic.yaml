@@ -1,0 +1,30 @@
+workflows:
+  android-debug:
+    name: Build Debug APK
+    environment:
+      node: latest
+      java: 17
+      android: latest
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd client
+          npm install
+      - name: Build React frontend
+        script: |
+          cd client
+          npm run build
+      - name: Sync Capacitor with Android
+        script: |
+          cd client
+          npx cap sync android
+      - name: Build APK with Gradle
+        script: |
+          cd client/android
+          ./gradlew assembleDebug
+    artifacts:
+      - client/android/app/build/outputs/apk/debug/*.apk
+    publishing:
+      email:
+        recipients:
+          - tabishk655@gmail.com
