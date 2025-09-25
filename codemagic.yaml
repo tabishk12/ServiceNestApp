@@ -3,7 +3,7 @@ workflows:
     name: Build Debug APK
     environment:
       node: latest
-      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+      java: 17
     scripts:
       - name: Install dependencies
         script: |
