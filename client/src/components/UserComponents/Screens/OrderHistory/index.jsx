@@ -1,17 +1,17 @@
-import { useSelector } from "react-redux";
 import Loader from "@components/Utils/Loader";
 import MessageBox from "@components/Utils/MessageBox";
-import Orders from "./Orders";
 import { useGetBookingHistoryQuery } from "@slices/Api/booking.Api";
+import { useSelector } from "react-redux";
+import Orders from "./Orders";
 
 export const OrderHistory = () => {
   const userId = useSelector((state) => state.auth.userInfo?._id);
   const { data: bookingHistory, isLoading } = useGetBookingHistoryQuery(
     userId,
     {
-      refetchOnMountOrArgChange: true,
-      refetchOnFocus: true,
-      refetchOnReconnect: true,
+      refetchOnMountOrArgChange: false,
+      refetchOnFocus: false,
+      refetchOnReconnect: false,
     },
   );
 

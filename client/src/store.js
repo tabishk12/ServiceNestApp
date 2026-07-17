@@ -1,13 +1,13 @@
 // store.js
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import { persistStore, persistReducer } from "redux-persist";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
+import addressReducer from "@slices/address.slice.js";
 import { apiSlice } from "@slices/Api/apiSlice.js";
 import authReducer from "@slices/authSlice.js";
-import addressReducer from "@slices/address.slice.js";
-import serviceReducer from "@slices/service.slice.js";
 import notificationReducer from "@slices/notificationSlice";
+import serviceReducer from "@slices/service.slice.js";
 // Combine all your reducers
 const appReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
@@ -30,7 +30,7 @@ const rootReducer = (state, action) => {
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "address", "service"], // persist only these
+  whitelist: ["auth", "address", "service", apiSlice.reducerPath], // persist query cache too
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
