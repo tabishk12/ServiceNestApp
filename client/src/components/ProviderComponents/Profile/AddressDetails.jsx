@@ -1,50 +1,89 @@
-import { useGetAddressByIdQuery } from "@slices/Api/address.Api";
+import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import DataRow from "@components/Utils/DataRow";
 import { useNavigate } from "react-router-dom";
+import { useGetAddressByIdQuery } from "@slices/Api/address.Api";
+import AddressComponent from "@utils/AddressComponent";
 
 const AddressDetails = () => {
   const navigate = useNavigate();
- const UserId = useSelector((state)=>state.auth?.userInfo._id);
- const {data:Address,isloading,error} = useGetAddressByIdQuery(UserId);
- const address= Address?.[0];
+  const [isEditing, setIsEditing] = useState(false);
+  const userId = useSelector((state) => state.auth?.userInfo?._id);
+  const {
+    data: Address,
+    isLoading,
+    isError,
+  } = useGetAddressByIdQuery(userId, { skip: !userId });
+  const address = Address?.[0];
+  const hasAddress = !!address;
+
+  const initialData = useMemo(
+    () => ({
+      fullName: address?.fullName || "",
+      phone: address?.phone || "",
+      street: address?.street || "",
+      city: address?.city || "",
+      state: address?.state || "",
+      zipCode: address?.zipCode || "",
+      country: address?.country || "India",
+    }),
+    [address],
+  );
+
   return (
-    <>
-    {isloading && <p>Loading Address Data</p>}
-   
-    <div className="shadow-lg min-h-40 rounded-lg p-3 sm:max-w-2xl mx-1 mt-3 w-full bg-white">
-      {!isloading && Address ?(<div className={`${Address ?"block":"hidden"}`} >
-       <h1 className='text-center text-gray-900 mb-3 flex  justify-between'>
-          <p className='text-3xl font-bold'>  AddressDetails</p>
-          <Link to="/edit" state={{ section: "address" }} className="text-blue-700">Edit</Link>
+    <div className="w-full min-h-40 rounded-lg border border-slate-200 bg-white p-4 md:p-6">
+      {isLoading && <p>Loading Address Data</p>}
 
-      </h1>
-    
-            <DataRow label={"Street"}
-            value={address?.street}/>
+      {!isLoading && !hasAddress ? (
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold">No Address found</h1>
+          <button
+            type="button"
+            className="mt-2 rounded-xl bg-green-600 p-2 text-white"
+            onClick={() => navigate("/Add-address")}
+          >
+            Add Address
+          </button>
+        </div>
+      ) : (
+        !isLoading && (
+          <>
+            <div className="mb-3 flex items-center justify-between text-gray-900">
+              <h2 className="text-3xl font-bold">Address Details</h2>
+              {!isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="font-semibold text-blue-700 hover:underline"
+                >
+                  Edit
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="font-semibold text-slate-600 hover:underline"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
 
-            <DataRow label={"City"}
-            value= {address?.city} />
+            <AddressComponent
+              key={`${address?._id || "address"}-${isEditing}`}
+              initialData={initialData}
+              readOnly={!isEditing}
+              redirectOnSuccess={false}
+              showActions={isEditing}
+              submitLabel="Save Address"
+              onSuccess={() => setIsEditing(false)}
+            />
+          </>
+        )
+      )}
 
-            <DataRow label={"State"}
-            value={address?.state}  />
-
-            <DataRow label={"Country"}
-            value={address?.country}/>
-
-            <DataRow label={"ZipCode"}
-            value={address?.zipCode}/>
-            </div>)
-    :
-    (<div className="text-center "><h1 className="text-2xl font-semibold">No Address found </h1>
-     <button className="bg-green-600 p-2 rounded-xl mt-2 text-white"
-     onClick={()=>{navigate('/Add-address')}}>Add Address</button>
-    </div>) }
+      {isError && !hasAddress && !isLoading && null}
     </div>
-  
-    </>
-  )
-}
+  );
+};
 
 export default AddressDetails;

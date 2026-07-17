@@ -1,27 +1,24 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { get } from 'mongoose';
+import { createSlice } from "@reduxjs/toolkit";
+import { get } from "mongoose";
 
 const initialState = {
   address: null,
 };
 
 const addressSlice = createSlice({
-  name: 'address',
+  name: "address",
   initialState,
   reducers: {
     saveAddress: (state, action) => {
       state.address = action.payload;
     },
     clearAddressInfo: (state) => {
-      state.address = '';
+      state.address = "";
       state.selectedService = null;
     },
   },
 });
 
-export const {
-  saveAddress,
-  clearAddressInfo,
-} = addressSlice.actions;
+export const { saveAddress, clearAddressInfo } = addressSlice.actions;
 
 export default addressSlice.reducer;

@@ -1,5 +1,5 @@
-import UserModel from '../models/user.model.js';
-import generateToken from '../utils/generate-token.util.js';
+import UserModel from "../models/user.model.js";
+import generateToken from "../utils/generate-token.util.js";
 
 /**
  * @desc		Auth user
@@ -18,12 +18,12 @@ const authUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      role:user.role,
+      role: user.role,
       isAdmin: user.isAdmin,
     });
   } else {
     res.status(401);
-    throw new Error('Invalid email or password');
+    throw new Error("Invalid email or password");
   }
 };
 
@@ -33,16 +33,25 @@ const authUser = async (req, res) => {
  * @access	public
  */
 const registerUser = async (req, res) => {
-  const { name , email , contact , location , image , password , confirmPassword } = req.body;
+  const { name, email, contact, location, image, password, confirmPassword } =
+    req.body;
 
   const userExist = await UserModel.findOne({ email });
 
   if (userExist) {
     res.status(400); // BAD REQUEST (client error)
-    throw new Error('User already exists');
+    throw new Error("User already exists");
   }
 
-  const user = await UserModel.create({ name,email,contact,location,imageUrl:image, password,confirmPassword});
+  const user = await UserModel.create({
+    name,
+    email,
+    contact,
+    location,
+    imageUrl: image,
+    password,
+    confirmPassword,
+  });
 
   if (user) {
     generateToken(res, user._id);
@@ -51,13 +60,13 @@ const registerUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      role:user.role,
+      role: user.role,
       isAdmin: user.isAdmin,
     });
     console.log("User registered successfully:", user);
   } else {
     res.status(400);
-    throw new Error('Invalid user data');
+    throw new Error("Invalid user data");
   }
 };
 
@@ -67,12 +76,15 @@ const registerUser = async (req, res) => {
  * @access	private
  */
 const logoutUser = async (req, res) => {
-  res.cookie('jwt', '', {
+  const isProd = process.env.NODE_ENV === "production";
+  res.cookie("jwt", "", {
     httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "strict",
     expires: new Date(0),
   });
 
-  res.status(200).json({ message: 'User logged out' });
+  res.status(200).json({ message: "User logged out" });
 };
 
 /**
@@ -84,10 +96,10 @@ const getUserProfile = async (req, res) => {
   const user = await UserModel.findById(req.user._id);
 
   if (user) {
-    res.status(200).json({user});
+    res.status(200).json({ user });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 };
 
@@ -122,7 +134,7 @@ const updateUserProfile = async (req, res) => {
     });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 };
 
@@ -132,7 +144,7 @@ const updateUserProfile = async (req, res) => {
  * @access	private/admin
  */
 const getUsers = async (req, res) => {
-  res.send('Get all users');
+  res.send("Get all users");
 };
 
 /**
@@ -141,7 +153,7 @@ const getUsers = async (req, res) => {
  * @access	private/admin
  */
 const getUserById = async (req, res) => {
-  res.send('Get user by ID');
+  res.send("Get user by ID");
 };
 
 /**
@@ -150,7 +162,7 @@ const getUserById = async (req, res) => {
  * @access	private/admin
  */
 const updateUser = async (req, res) => {
-  res.send('Update user');
+  res.send("Update user");
 };
 
 /**
@@ -159,7 +171,7 @@ const updateUser = async (req, res) => {
  * @access	private/admin
  */
 const deleteUser = async (req, res) => {
-  res.send('Delete user');
+  res.send("Delete user");
 };
 
 export {

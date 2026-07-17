@@ -1,56 +1,83 @@
-import { useUpdateStatusMutation } from "@slices/Api/booking.Api"
-import { useState } from 'react';
-import { useSelector } from "react-redux";
-import {useCreateNotificationMutation} from "@slices/Api/notification.Api";
-const UpdateOrder = ({status,bookingId}) => {
-    const userId = useSelector((state) => state.auth.userInfo?._id);
-    const [createNotification] = useCreateNotificationMutation();
-    const [orderStatus,setStatus]=useState(status);
-    const   [updateOrderStatus] = useUpdateStatusMutation()
+import { useUpdateStatusMutation } from "@slices/Api/booking.Api";
+import { useState } from "react";
+import { useCreateNotificationMutation } from "@slices/Api/notification.Api";
+import { FaCheck, FaTimes } from "react-icons/fa";
 
+const normalizeStatus = (status = "") => status.toLowerCase();
 
-    const updateStatus =async (newStatus)=>{
-        setStatus(newStatus)
-      const updatedBooking = await updateOrderStatus({bookingId,orderStatus:newStatus}).unwrap()
-        console.log(orderStatus)
-        console.log(updatedBooking);
-        // Create notification for Customer
-        createNotification({
-          userId: updatedBooking.booking.userId, // customer 
-            title: "Booking Status Updated",
-            message: `Your booking status has been updated to ${newStatus}.`,
-            type: "booking",
-            bookingId,  
-        });
+const UpdateOrder = ({ status, bookingId }) => {
+  const [createNotification] = useCreateNotificationMutation();
+  const [orderStatus, setStatus] = useState(status);
+  const [updateOrderStatus, { isLoading }] = useUpdateStatusMutation();
+  const statusKey = normalizeStatus(orderStatus);
+
+  const updateStatus = async (newStatus) => {
+    setStatus(newStatus);
+    try {
+      const updatedBooking = await updateOrderStatus({
+        bookingId,
+        orderStatus: newStatus,
+      }).unwrap();
+      createNotification({
+        userId: updatedBooking.booking.userId,
+        title: "Booking Status Updated",
+        message: `Your booking status has been updated to ${newStatus}.`,
+        type: "booking",
+        bookingId,
+      });
+    } catch (err) {
+      setStatus(status);
+      console.error(err);
     }
-  return (
-   <>
-   {status ==='pending'
-   ?<div>
-    <button className='bg-red-500 p-3 w-[6em] text-white m-1 rounded-xl text-[1.3em]'
-    onClick={()=>{ updateStatus('Cancelled');}}
-    > Cancle
-    </button>
-    
-    <button className='bg-green-500 p-3 w-[6em] text-white m-1 rounded-xl text-[1.3em]'
-    onClick={()=>{updateStatus('Confirmed');}}>
-        Accept
-        </button>
-   </div>
-   :status==='Confirmed'
-   ?<div>
-    <button className='bg-red-500 p-3 w-[6em] text-white m-1 rounded-xl text-[1.3em]'
-    onClick={()=>{updateStatus('Cancelled');}}>
-        Cancle
-        </button>
-    <button className='bg-blue-500 p-3 w-[6em] text-white m-1 rounded-xl text-[1.3em]'
-    onClick={()=>{updateStatus('Completed');}}>Complete</button>
-   </div>
-   :""
-   }
+  };
 
-   </> 
-  )
-}
+  if (statusKey === "pending") {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={isLoading}
+          className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+          onClick={() => updateStatus("confirmed")}
+        >
+          <FaCheck /> Accept
+        </button>
+        <button
+          type="button"
+          disabled={isLoading}
+          className="inline-flex items-center gap-1 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-50"
+          onClick={() => updateStatus("cancelled")}
+        >
+          <FaTimes /> Decline
+        </button>
+      </div>
+    );
+  }
 
-export default UpdateOrder
+  if (statusKey === "confirmed") {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={isLoading}
+          className="inline-flex items-center gap-1 rounded-xl bg-purple-600 px-4 py-2 text-sm font-bold text-white hover:bg-purple-700 disabled:opacity-50"
+          onClick={() => updateStatus("completed")}
+        >
+          <FaCheck /> Complete
+        </button>
+        <button
+          type="button"
+          disabled={isLoading}
+          className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+          onClick={() => updateStatus("cancelled")}
+        >
+          <FaTimes /> Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+export default UpdateOrder;

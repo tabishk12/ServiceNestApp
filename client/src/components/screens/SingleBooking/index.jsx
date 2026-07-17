@@ -1,18 +1,14 @@
-import React from 'react'
-import ProviderBooking from './ProviderBooking';
-import CustomerBooking from './CustomerBooking';
-import { useSelector } from 'react-redux';
+import React from "react";
+import ProviderBooking from "./ProviderBooking";
+import CustomerBooking from "./CustomerBooking";
+import { useSelector } from "react-redux";
 
-const SingleBookingScreen= ()=> {
-
+const SingleBookingScreen = () => {
   const UserRole = useSelector((state) => state.auth?.userInfo?.role);
-  if (UserRole === 'provider') {  
+  if (UserRole === "provider") {
     return <ProviderBooking />;
   }
-  if (UserRole === 'customer') {
-    return <CustomerBooking />;
-  }
-  <CustomerBooking/>
-}
+  return <CustomerBooking />;
+};
 
-export default SingleBookingScreen
+export default SingleBookingScreen;

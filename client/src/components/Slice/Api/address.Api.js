@@ -1,39 +1,38 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_URL, ADDRESS_URL } from '../constants';
-import { apiSlice } from './apiSlice';
-
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { BASE_URL, ADDRESS_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const addressApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createAddress: builder.mutation({
       query: ({ userId, address }) => ({
         url: `/address/create`,
-        method: 'POST',
+        method: "POST",
         body: { userId, ...address },
       }),
-      invalidatesTags: ['Address'],
+      invalidatesTags: ["Address"],
     }),
 
     getAddressById: builder.query({
       query: (id) => `/address/${id}`,
-      providesTags: ['Address'],
+      providesTags: ["Address"],
     }),
 
     updateAddress: builder.mutation({
       query: ({ id, ...updatedAddress }) => ({
         url: `/address/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedAddress,
       }),
-      invalidatesTags: ['Address'],
+      invalidatesTags: ["Address"],
     }),
 
     deleteAddress: builder.mutation({
       query: (id) => ({
         url: `/address/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Address'],
+      invalidatesTags: ["Address"],
     }),
   }),
 });

@@ -1,20 +1,35 @@
-import{ useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { saveAddress } from "@slices/address.slice.js";
 import { useUpdateAddressMutation } from "@slices/Api/address.Api";
 import { useNavigate } from "react-router-dom";
 
-const AddressComponent = ({
-  initialData = {}, onSubmit,submitLabel = "Save Address",disabledFields = [], }) =>   {
+const fieldClass = (readOnly) =>
+  `border p-2 rounded w-full ${
+    readOnly
+      ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-600"
+      : "bg-white"
+  }`;
 
- const navigate = useNavigate();
+const AddressComponent = ({
+  initialData = {},
+  onSubmit,
+  submitLabel = "Save Address",
+  disabledFields = [],
+  readOnly = false,
+  redirectOnSuccess = true,
+  showActions,
+  onSuccess,
+}) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.auth?.userInfo);
   const userId = userInfo?._id;
-    const [updateAddress, { isLoading }] = useUpdateAddressMutation();
+  const [updateAddress, { isLoading }] = useUpdateAddressMutation();
+  const actionsVisible = showActions ?? !readOnly;
 
   const [form, setForm] = useState({
-    fullName:"",
+    fullName: "",
     phone: "",
     street: "",
     city: "",
@@ -23,12 +38,13 @@ const AddressComponent = ({
     country: "India",
     ...initialData,
   });
-  
+
   useEffect(() => {
     setForm((prev) => ({ ...prev, ...initialData }));
   }, [initialData]);
 
   const handleChange = (e) => {
+    if (readOnly) return;
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -45,45 +61,54 @@ const AddressComponent = ({
     });
   };
 
-  const handleSubmit = async(e) => {
+  const isDisabled = (field) => readOnly || disabledFields.includes(field);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onSubmit) onSubmit(form);
-    else{
-      try {
-            if (!userId) throw new Error("Missing user ID");
-            await updateAddress({ id: userId, ...form }).unwrap(); // matches your mutation shape
-            dispatch(saveAddress(form));
-            alert(" saved successfully..!");
-          } catch (err) {
-            console.error("Update failed:", err);
-            alert("Failed to save address.");
-          }
+    if (readOnly) return;
+
+    if (onSubmit) {
+      await onSubmit(form);
+      return;
     }
-    navigate('/');
+
+    try {
+      if (!userId) throw new Error("Missing user ID");
+      await updateAddress({ id: userId, ...form }).unwrap();
+      dispatch(saveAddress(form));
+      alert("Saved successfully..!");
+      if (onSuccess) onSuccess(form);
+      if (redirectOnSuccess) navigate("/");
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Failed to save address.");
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <input
           name="fullName"
           type="text"
           placeholder="Full Name"
-          value={form.fullName}
+          value={form.fullName || ""}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className={fieldClass(isDisabled("fullName"))}
           required
-          disabled={disabledFields.includes("fullName")}
+          disabled={isDisabled("fullName")}
+          readOnly={readOnly}
         />
         <input
           name="phone"
           type="tel"
           placeholder="Phone Number"
-          value={form.phone}
+          value={form.phone || ""}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className={fieldClass(isDisabled("phone"))}
           required
-          disabled={disabledFields.includes("phone")}
+          disabled={isDisabled("phone")}
+          readOnly={readOnly}
         />
       </div>
 
@@ -91,74 +116,81 @@ const AddressComponent = ({
         name="street"
         type="text"
         placeholder="Street Address"
-        value={form.street}
+        value={form.street || ""}
         onChange={handleChange}
-        className="border p-2 rounded w-full"
+        className={fieldClass(isDisabled("street"))}
         required
-        disabled={disabledFields.includes("street")}
+        disabled={isDisabled("street")}
+        readOnly={readOnly}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <input
           name="city"
           type="text"
           placeholder="City"
-          value={form.city}
+          value={form.city || ""}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className={fieldClass(isDisabled("city"))}
           required
-          disabled={disabledFields.includes("city")}
+          disabled={isDisabled("city")}
+          readOnly={readOnly}
         />
         <input
           name="state"
           type="text"
           placeholder="State"
-          value={form.state}
+          value={form.state || ""}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className={fieldClass(isDisabled("state"))}
           required
-          disabled={disabledFields.includes("state")}
+          disabled={isDisabled("state")}
+          readOnly={readOnly}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <input
           name="zipCode"
           type="text"
           placeholder="Pin Code"
-          value={form.zipCode}
+          value={form.zipCode || ""}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className={fieldClass(isDisabled("zipCode"))}
           required
-          disabled={disabledFields.includes("zipCode")}
+          disabled={isDisabled("zipCode")}
+          readOnly={readOnly}
         />
         <input
           name="country"
           type="text"
           placeholder="Country"
-          value={form.country}
+          value={form.country || ""}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className={fieldClass(true)}
           disabled
+          readOnly
         />
       </div>
 
-      <div className="flex gap-4 flex-wrap">
-       
-        <button
-          type="button"
-          onClick={handleClear}
-          className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-        >
-          Clear All
-        </button>        
-        <button
-          type="submit"
-          className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          {submitLabel}
-        </button>
-      </div>
+      {actionsVisible && (
+        <div className="flex flex-wrap gap-4">
+          <button
+            type="button"
+            onClick={handleClear}
+            className="flex-1 rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
+          >
+            Clear All
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex-1 rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 disabled:opacity-60"
+          >
+            {isLoading ? "Saving..." : submitLabel}
+          </button>
+        </div>
+      )}
     </form>
   );
 };

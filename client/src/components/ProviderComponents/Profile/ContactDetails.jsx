@@ -1,37 +1,42 @@
+import { useState } from "react";
+import ContactComponent from "@utils/ContactComponent";
 
-import { HiOutlinePhone, HiOutlineMail } from "react-icons/hi";
-import DataRow from "@components/Utils/DataRow";
-import { Link } from "react-router-dom";
+const ContactDetails = ({ profile }) => {
+  const [isEditing, setIsEditing] = useState(false);
 
-const ContactDetails = ({profile}) => {
   return (
-   <>
-  <div className='shadow-lg min-h-40 rounded-lg p-3 sm:max-w-2xl mx-1 w-full bg-white'>
-            <h1 className='text-center text-gray-900 mb-3 flex  justify-between'>
-        <p className="text-3xl font-bold ">User Details</p>
-        <Link to="/edit" state={{ section: "contact" }} className="text-blue-700">Edit</Link>
-        </h1>
+    <div className="w-full min-h-40 rounded-lg border border-slate-200 bg-white p-4 md:p-6">
+      <div className="mb-3 flex items-center justify-between text-gray-900">
+        <h2 className="text-3xl font-bold">User Details</h2>
+        {!isEditing ? (
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
+            className="font-semibold text-blue-700 hover:underline"
+          >
+            Edit
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsEditing(false)}
+            className="font-semibold text-slate-600 hover:underline"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
 
-          <DataRow label={'Name'} 
-          value={profile?.user.name}/>
+      <ContactComponent
+        key={`${profile?.user?._id || "contact"}-${isEditing}`}
+        readOnly={!isEditing}
+        redirectOnSuccess={false}
+        onCancel={() => setIsEditing(false)}
+        onSuccess={() => setIsEditing(false)}
+        showActions={isEditing}
+      />
+    </div>
+  );
+};
 
-          <DataRow label={'E-mail'} 
-          value={profile?.user.email} 
-          Icon={<HiOutlineMail />}/>
-
-          <DataRow label={'Location'}
-          value={profile?.user.location}/>
-
-          <DataRow label={'Ph.Number'} 
-          value={profile?.user.contact} 
-          Icon={<HiOutlinePhone />}/>
-
-          <DataRow label={'Role'}
-          value= {profile?.user.role}/>
-
-  </div>
-   </>
-  )
-}
-
-export default ContactDetails
+export default ContactDetails;

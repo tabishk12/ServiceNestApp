@@ -1,21 +1,36 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 const ButtonsDiv = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   return (
-  <>
-  <div className='flex lg:row justify-center p-4 mx-1 w-full gap-8 max-h-[5.3em] my-2' >
-  <button className='text-sm p-4 rounded-xl bg-gray-800 text-white hover:bg-gray-900'
-  onClick={()=>{navigate('/browse-services')}}
-  >Browse Services</button>
-  <button className='text-sm p-4 rounded-xl bg-gray-800 text-white hover:bg-gray-900'
-  onClick={()=>{navigate('/order-history')}}
-  >Previous Orders</button>
-  <button className='text-sm p-4 rounded-xl bg-gray-800 text-white hover:bg-gray-900'
-  onClick={()=>{navigate('/setting')}}
-  >Account Setting</button>
-  </div>
-  </>
-  )
-}
+    <>
+      <div className="flex lg:row justify-center p-4 mx-1 w-full gap-8 max-h-[5.3em] my-2">
+        <button
+          className="flex items-center justify-center text-sm p-4 rounded-xl bg-gray-800 text-white hover:bg-gray-900"
+          onClick={() => {
+            navigate("/browse-services");
+          }}
+        >
+          Browse Services
+        </button>
+        <button
+          className="flex items-center justify-center text-sm p-4 rounded-xl bg-gray-800 text-white hover:bg-gray-900"
+          onClick={() => {
+            navigate("/order-history");
+          }}
+        >
+          Previous Orders
+        </button>
+        <button
+          className="flex items-center justify-center text-sm p-4 rounded-xl bg-gray-800 text-white hover:bg-gray-900"
+          onClick={() => {
+            navigate("/setting");
+          }}
+        >
+          Account Setting
+        </button>
+      </div>
+    </>
+  );
+};
 
-export default ButtonsDiv
+export default ButtonsDiv;

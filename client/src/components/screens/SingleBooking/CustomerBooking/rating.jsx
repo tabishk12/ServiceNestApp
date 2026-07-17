@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Star } from "lucide-react"; // using lucide icons
-import { useCreateRatingMutation } from "@slices/Api/booking.Api"; // assume you have rating API
+import { FaStar } from "react-icons/fa";
+import { useCreateRatingMutation } from "@slices/Api/booking.Api";
 
-const RatingComponent = ({ bookingId, providerId,serviceId, onRated }) => {
+const RatingComponent = ({ bookingId, providerId, serviceId, onRated }) => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
@@ -11,8 +11,8 @@ const RatingComponent = ({ bookingId, providerId,serviceId, onRated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-     try {
-    const success =  await createRating({
+    try {
+      const success = await createRating({
         bookingId,
         providerId,
         serviceId,
@@ -21,10 +21,10 @@ const RatingComponent = ({ bookingId, providerId,serviceId, onRated }) => {
       }).unwrap();
 
       if (onRated) onRated(); // callback to parent (e.g., refresh booking details)
-     if(success) alert("✅ Thanks for your feedback!");
+      if (success) alert("✅ Thanks for your feedback!");
     } catch (err) {
-     console.error("Rating failed:", err);
-     }
+      console.error("Rating failed:", err);
+    }
   };
 
   return (
@@ -34,14 +34,12 @@ const RatingComponent = ({ bookingId, providerId,serviceId, onRated }) => {
       {/* Star rating */}
       <div className="flex space-x-2 mb-4">
         {[1, 2, 3, 4, 5].map((star) => (
-          <Star
+          <FaStar
             key={star}
-            className={`w-8 h-8 cursor-pointer transition ${
-              (hover || rating) >= star
-                ? "text-yellow-500 fill-yellow-500"
-                : "text-gray-300"
+            className={`h-8 w-8 cursor-pointer transition ${
+              (hover || rating) >= star ? "text-yellow-500" : "text-gray-300"
             }`}
-            onClick={() =>setRating(star)}
+            onClick={() => setRating(star)}
             onMouseEnter={() => setHover(star)}
             onMouseLeave={() => setHover(0)}
           />
@@ -62,7 +60,7 @@ const RatingComponent = ({ bookingId, providerId,serviceId, onRated }) => {
         // disabled={rating === 0 || isLoading}
         className="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition disabled:opacity-50"
       >
-        { "Submit Rating"}
+        {"Submit Rating"}
       </button>
     </div>
   );

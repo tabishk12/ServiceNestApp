@@ -1,18 +1,35 @@
-import { useGetBookingHistoryQuery } from '@slices/Api/booking.Api';
-import { FaPhoneAlt, FaMapMarkerAlt, FaCalendarAlt, FaRupeeSign } from 'react-icons/fa';
+import { useGetBookingHistoryQuery } from "@slices/Api/booking.Api";
+import {
+  FaCalendarAlt,
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaRupeeSign,
+} from "react-icons/fa";
 
 const Orders = ({ userId }) => {
-  const { data: bookingHistory, isLoading, isError } = useGetBookingHistoryQuery(userId);
+  const {
+    data: bookingHistory,
+    isLoading,
+    isError,
+  } = useGetBookingHistoryQuery(userId, {
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
+  });
 
   if (isError) {
-    return <div className="text-center text-lg text-red-600 mt-4">Failed to fetch order history.</div>;
+    return (
+      <div className="text-center text-lg text-red-600 mt-4">
+        Failed to fetch order history.
+      </div>
+    );
   }
 
   return (
     <>
-      {(bookingHistory && bookingHistory.length > 0) && (
+      {bookingHistory && bookingHistory.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-          {bookingHistory.map(order => {
+          {bookingHistory.map((order) => {
             const {
               _id: orderId,
               bookingDate,
@@ -20,13 +37,16 @@ const Orders = ({ userId }) => {
               paymentMethod,
               providerId: { name, imageUrl, contact, spDetails },
               addressId: { street, city, state, zipCode, country },
-              serviceId: { name: serviceName,_id },
+              serviceId: { name: serviceName, _id },
             } = order;
-         const detail=  spDetails.find((detail)=> detail.serviceId ===_id  )
-              const price = detail.price;
+            const detail = spDetails.find((detail) => detail.serviceId === _id);
+            const price = detail.price;
             return (
-             <div key={orderId} className="max-md:max-w-2xl new-md:mx-auto bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">  
-               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <div
+                key={orderId}
+                className="max-md:max-w-2xl new-md:mx-auto bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                   <img
                     src={imageUrl}
                     alt={name}
@@ -38,13 +58,13 @@ const Orders = ({ userId }) => {
                       <h2 className="text-xl font-semibold">{name}</h2>
                       <span
                         className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                          status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : status === 'Completed'
-                            ? 'bg-white text-green-700'
-                             :status ==='Confirmed'?
-                            `bg-purple-100 text-purple-700`
-                            : 'bg-white text-red-700'
+                          status === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : status === "Completed"
+                              ? "bg-white text-green-700"
+                              : status === "Confirmed"
+                                ? `bg-purple-100 text-purple-700`
+                                : "bg-white text-red-700"
                         }`}
                       >
                         {status.toUpperCase()}
@@ -71,8 +91,9 @@ const Orders = ({ userId }) => {
                     </p>
 
                     <p className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                     
-                      {paymentMethod === 'COD' ? 'Cash on Delivery' : paymentMethod}
+                      {paymentMethod === "COD"
+                        ? "Cash on Delivery"
+                        : paymentMethod}
                     </p>
                     <p className="flex items-center gap-2 text-sm text-gray-600">
                       <FaMapMarkerAlt />
@@ -84,7 +105,6 @@ const Orders = ({ userId }) => {
             );
           })}
         </div>
-      
       )}
     </>
   );

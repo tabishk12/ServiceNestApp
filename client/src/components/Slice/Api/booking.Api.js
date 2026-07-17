@@ -18,11 +18,11 @@ export const bookingApi = apiSlice.injectEndpoints({
 
     getBookings: builder.query({
       query: (ProviderId) => `/booking/ProviderBooking/${ProviderId}`,
-      providesTags: ["Booking"], 
+      providesTags: ["Booking"],
     }),
     getSinleBooking: builder.query({
       query: (bookingId) => `/booking/${bookingId}`,
-      providesTags: ["Booking"], 
+      providesTags: ["Booking"],
     }),
 
     updateStatus: builder.mutation({
@@ -31,16 +31,16 @@ export const bookingApi = apiSlice.injectEndpoints({
         method: "PUT",
         body: { orderStatus },
       }),
-      invalidatesTags: ["Booking"], 
+      invalidatesTags: ["Booking"],
     }),
-    
-    createRating:builder.mutation({
-      query:({bookingId,providerId,serviceId,rating,comment})=>({
-        url:`/booking/${bookingId}/createRating`,
+
+    createRating: builder.mutation({
+      query: ({ bookingId, providerId, serviceId, rating, comment }) => ({
+        url: `/booking/${bookingId}/createRating`,
         method: "PUT",
-        body:{bookingId,providerId,serviceId,rating,comment},
+        body: { bookingId, providerId, serviceId, rating, comment },
       }),
-      invalidatesTags: ["Booking","User"], 
+      invalidatesTags: ["Booking", "User"],
     }),
   }),
 });

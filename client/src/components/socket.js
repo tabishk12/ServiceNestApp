@@ -1,8 +1,9 @@
 import io from "socket.io-client";
 import { store } from "@store";
 import { incrementUnread } from "@slices/notificationSlice";
+import { SOCKET_URL } from "@slices/constants";
 
-const socket = io("http://localhost:5000", {
+const socket = io(SOCKET_URL, {
   withCredentials: true,
 });
 
@@ -10,7 +11,6 @@ socket.on("connect", () => {
   console.log("⚡ Connected to socket server");
 });
 
-// ✅ When a new notification comes
 socket.on("notification", (notification) => {
   console.log("📩 New notification:", notification);
   store.dispatch(incrementUnread());

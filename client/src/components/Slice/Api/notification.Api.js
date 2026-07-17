@@ -8,7 +8,7 @@ export const notificationApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Notifications"], 
+      invalidatesTags: ["Notifications"],
       providesTags: ["Notifications"],
     }),
 
@@ -24,7 +24,6 @@ export const notificationApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["Notifications"],
       invalidatesTags: ["Notifications"],
-
     }),
 
     markAllAsRead: builder.mutation({

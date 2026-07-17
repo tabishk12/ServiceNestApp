@@ -1,95 +1,146 @@
-import { FaPhoneAlt, FaMapMarkerAlt, FaCalendarAlt, FaRupeeSign } from 'react-icons/fa';
-import ProfileImage from "@assets/pictures/profile-picture.jpg"
-import UpdateOrder from './UpdateOrder';
-import { useGetSinleBookingQuery } from '@slices/Api/booking.Api';
-import Loader from '@utils/Loader';
-import { useSelector } from 'react-redux';
+import {
+  useGetSinleBookingQuery,
+  useUpdateStatusMutation,
+} from "@slices/Api/booking.Api";
+import { useCreateNotificationMutation } from "@slices/Api/notification.Api";
+import Loader from "@utils/Loader";
+import { useEffect, useState } from "react";
+import { FaCheck, FaTimes } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+import BookingDetailLayout from "../BookingDetailLayout";
+import { normalizeStatus } from "../bookingUtils";
+
 const ProviderBooking = () => {
-    const bookingId = window.location.pathname.split('/').pop(); // Assuming the bookingId is the last part of the URL
-    const {data:booking, isLoading} = useGetSinleBookingQuery(bookingId, {
-        refetchOnMountOrArgChange: true,
-        refetchOnFocus: true,
-        refetchOnReconnect: true,
-    });
-    const UserRole = useSelector((state) => state.auth?.userInfo?.role);
- if (isLoading) {
-    <Loader text="Loading Data please wait" />
- }
-  if (!booking) {
-    return <p className="text-center text-red-500">Booking not found.</p>;
+  const { bookingId } = useParams();
+  const { data: booking, isLoading } = useGetSinleBookingQuery(bookingId, {
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
+    skip: !bookingId,
+  });
+  const [updateOrderStatus, { isLoading: isUpdating }] =
+    useUpdateStatusMutation();
+  const [createNotification] = useCreateNotificationMutation();
+  const [localStatus, setLocalStatus] = useState(null);
+
+  const serverStatus = booking?.status;
+  useEffect(() => {
+    setLocalStatus(null);
+  }, [serverStatus]);
+
+  if (isLoading) {
+    return <Loader text="Loading Data please wait" />;
   }
-    const {
-      _id: orderId,
-      bookingDate,
-      status,
-      paymentMethod,
-      serviceId: { name: serviceName,_id },
-      addressId: { street, city, state, zipCode, country },
-     userId : { name,imageUrl, contact},
-     providerId:{spDetails},
-    } = booking;
-    const detail=  spDetails?.find((detail)=> detail.serviceId ===_id  )
-    const price = detail.price;
-  return (
-    <>
-    <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-6 border-2 border-gray-200 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-3 m-3 mx-auto`}>
-                      <img
-                        src={imageUrl || ProfileImage}
-                        alt={name}
-                        className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 shadow-sm"
-                      />
-    
-                      <div className="flex-1 space-y-2 text-gray-700">
-                        <div className="flex justify-between items-center">
-                          <p className="text-xl font-semibold">
-                          <strong>Service: </strong> {serviceName}
-                        </p>
-                          <span
-                            className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                              status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : status === 'Completed'
-                                ? 'bg-green-100 text-green-700'
-                                :status ==='Confirmed'?
-                                `bg-purple-100 text-purple-700`
-                          
-                                :'bg-red-100 text-red-700'
-                            }`}
-                          >
-                            {status.toUpperCase()}
-                          </span>
-                        </div>
-    
-                        <p className="flex items-center gap-2 text-sm">
-                          <FaPhoneAlt className="text-gray-500" />
-                          {contact} 
-                        </p>
-                          <h2 className="flex items-center gap-2 text-sm"><strong>{name}</strong></h2>
-    
-                        <p className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                          <FaRupeeSign className="text-green-500" />
-                          {price}
-                        </p>
-    
-                        <p className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaCalendarAlt />
-                          {new Date(bookingDate).toLocaleString()}
-                        </p>
-    
-                        <p className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                         
-                          {paymentMethod === 'COD' ? 'Cash on Delivery' : paymentMethod}
-                        </p>
-                        <p className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaMapMarkerAlt />
-                          {street}, {city}, {state}, {zipCode}, {country}
-                        </p>
-                         <div className="flex items-center gap-2 text-sm text-gray-600">
-                        {UserRole==='provider' && <UpdateOrder status={status} bookingId={orderId} />}</div>
-                      </div>
-                    </div>
-    </>
+
+  if (!booking) {
+    return <p className="p-6 text-center text-red-500">Booking not found.</p>;
+  }
+
+  const {
+    _id: orderId,
+    bookingDate,
+    paymentMethod,
+    totalPrice,
+    serviceId: { name: serviceName, _id: serviceId } = {},
+    addressId = {},
+    userId: { name, imageUrl, contact, _id: customerId } = {},
+    providerId: { spDetails = [] } = {},
+  } = booking;
+
+  const status = localStatus || serverStatus;
+  const detail = spDetails?.find(
+    (d) => String(d.serviceId) === String(serviceId),
   );
-}
+  const price = totalPrice ?? detail?.price ?? 0;
+  const statusKey = normalizeStatus(status);
+
+  const updateStatus = async (newStatus) => {
+    try {
+      setLocalStatus(newStatus);
+      const updated = await updateOrderStatus({
+        bookingId: orderId,
+        orderStatus: newStatus,
+      }).unwrap();
+      const notifyUserId =
+        updated?.booking?.userId?._id || updated?.booking?.userId || customerId;
+      if (notifyUserId) {
+        createNotification({
+          userId: notifyUserId,
+          title: "Booking Status Updated",
+          message: `Your booking status has been updated to ${newStatus}.`,
+          type: "booking",
+          bookingId: orderId,
+        });
+      }
+    } catch (err) {
+      setLocalStatus(null);
+      console.error("Failed to update booking status", err);
+      alert(err?.data?.message || "Could not update booking.");
+    }
+  };
+
+  const actions =
+    statusKey === "pending" ? (
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={() => updateStatus("confirmed")}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+        >
+          <FaCheck />
+          Accept Booking
+        </button>
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={() => updateStatus("cancelled")}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"
+        >
+          <FaTimes />
+          Decline
+        </button>
+      </div>
+    ) : statusKey === "confirmed" ? (
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={() => updateStatus("completed")}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-purple-700 disabled:opacity-50"
+        >
+          <FaCheck />
+          Mark Completed
+        </button>
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={() => updateStatus("cancelled")}
+          className="inline-flex w-full items-center justify-center gap-2 px-2 py-2 text-sm font-semibold text-slate-500 transition hover:text-rose-600 disabled:opacity-50"
+        >
+          <FaTimes />
+          Cancel Booking
+        </button>
+      </div>
+    ) : (
+      <p className="text-sm text-slate-500">
+        No further actions for this booking.
+      </p>
+    );
+
+  return (
+    <BookingDetailLayout
+      serviceName={serviceName}
+      status={status}
+      bookingDate={bookingDate}
+      person={{ name, imageUrl, contact }}
+      personLabel="Customer"
+      address={addressId}
+      price={price}
+      paymentMethod={paymentMethod}
+      actions={actions}
+    />
+  );
+};
 
 export default ProviderBooking;

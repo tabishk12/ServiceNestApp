@@ -24,7 +24,9 @@ const SpDetails = () => {
   const title = "My Service Portfolio";
 
   const handleDelete = async (ServiceId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this service?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this service?",
+    );
     if (!confirmed) return;
     const data = await DeleteService({ userId, ServiceId }).unwrap();
     console.log("Deleted:", data);
@@ -36,8 +38,12 @@ const SpDetails = () => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 > 0;
     for (let i = 0; i < 5; i++) {
-      if (i < fullStars) stars.push(<FaStar key={i} className="inline text-yellow-500" />);
-      else if (i === fullStars && hasHalfStar) stars.push(<FaStarHalfAlt key={i} className="inline text-yellow-500" />);
+      if (i < fullStars)
+        stars.push(<FaStar key={i} className="inline text-yellow-500" />);
+      else if (i === fullStars && hasHalfStar)
+        stars.push(
+          <FaStarHalfAlt key={i} className="inline text-yellow-500" />,
+        );
       else stars.push(<FaRegStar key={i} className="inline text-yellow-500" />);
     }
     return stars;
@@ -48,8 +54,8 @@ const SpDetails = () => {
     pathName === "/ServiceList"
       ? SpDetails
       : showAll
-      ? SpDetails
-      : SpDetails.slice(0, 3); // show only 3 initially
+        ? SpDetails
+        : SpDetails.slice(0, 3); // show only 3 initially
 
   return (
     <div className={`m-3 ${pathName === "/ServiceList" ? "bg-white p-2" : ""}`}>

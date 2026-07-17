@@ -1,13 +1,14 @@
 import Notification from "../models/notification.model.js";
 
-
 // ✅ Create new notification
 export const createNotification = async (req, res) => {
   try {
     const { userId, title, message, type, bookingId } = req.body;
 
     if (!userId || !title || !message) {
-      return res.status(400).json({ message: "userId, title, and message are required" });
+      return res
+        .status(400)
+        .json({ message: "userId, title, and message are required" });
     }
 
     const notification = await Notification.create({
@@ -29,8 +30,9 @@ export const getNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const notifications = await Notification.find({ userId })
-      .sort({ createdAt: -1 });
+    const notifications = await Notification.find({ userId }).sort({
+      createdAt: -1,
+    });
 
     res.status(200).json(notifications);
   } catch (error) {
@@ -46,7 +48,7 @@ export const markAsRead = async (req, res) => {
     const notification = await Notification.findByIdAndUpdate(
       id,
       { isRead: true },
-      { new: true }
+      { new: true },
     );
 
     if (!notification) {
@@ -55,7 +57,9 @@ export const markAsRead = async (req, res) => {
 
     res.status(200).json(notification);
   } catch (error) {
-    res.status(500).json({ message: "Error marking notification as read", error });
+    res
+      .status(500)
+      .json({ message: "Error marking notification as read", error });
   }
 };
 
@@ -66,7 +70,7 @@ export const markAllAsRead = async (req, res) => {
 
     await Notification.updateMany(
       { userId, isRead: false },
-      { $set: { isRead: true } }
+      { $set: { isRead: true } },
     );
 
     res.status(200).json({ message: "All notifications marked as read" });

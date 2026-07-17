@@ -1,44 +1,51 @@
-import './index.css';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Layout from '@components/Layout';
-import ErrorPage from '@components/Error';
-import PrivateRoute from '@components/PrivateRoute';
-import Login from '@components/LoginPage';
-import Register from '@components/Register';
-import { useSelector } from 'react-redux';
+import ErrorPage from "@components/Error";
+import Layout from "@components/Layout";
+import Login from "@components/LoginPage";
+import PrivateRoute from "@components/PrivateRoute";
+import Register from "@components/Register";
+import { useSelector } from "react-redux";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
+import "./index.css";
 
-import { customerRoutes } from '@userComponent/customerRoutes';
-import { providerRoutes } from '@providerComponent/ProviderRoutes';
+import { providerRoutes } from "@providerComponent/ProviderRoutes";
+import { customerRoutes } from "@userComponent/customerRoutes";
 
 function App() {
-  const { userInfo } = useSelector((state) => state.auth); // Assuming role is in userInfo.role
+  const { userInfo } = useSelector((state) => state.auth);
+  const role = userInfo?.role;
 
-  // Choose routes based on role
-  let roleRoutes = [];
-  if (userInfo?.role === 'provider') {
-    roleRoutes = providerRoutes;
-  } else if (userInfo?.role === 'customer') {
-    roleRoutes = customerRoutes;
-  }
+  const roleRoutes =
+    role === "provider"
+      ? providerRoutes
+      : role === "customer"
+      ? customerRoutes
+      : [];
 
-  const router = createBrowserRouter([
-    {
-      path: '',
-      element: <Layout />,
-      errorElement: <ErrorPage />,
-      children: [
-        { path: '/login', element: <Login /> },
-        { path: '/register', element: <Register /> },
-        {
-          path: '',
-          element: <PrivateRoute />,
-          children: roleRoutes
-        }
-      ]
-    }
-  ]);
-
-  return <RouterProvider router={router} />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route element={<PrivateRoute />}>
+            {roleRoutes.length > 0 ? (
+              roleRoutes.map((route, index) => (
+                <Route key={route.path || index} {...route} />
+              ))
+            ) : (
+              <Route index element={<Navigate to="/login" replace />} />
+            )}
+          </Route>
+          <Route path="*" element={<ErrorPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

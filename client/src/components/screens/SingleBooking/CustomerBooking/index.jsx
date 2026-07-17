@@ -1,99 +1,143 @@
-import { FaPhoneAlt, FaMapMarkerAlt, FaCalendarAlt, FaRupeeSign } from 'react-icons/fa';
-import ProfileImage from "@assets/pictures/profile-picture.jpg"
-import { useGetSinleBookingQuery } from '@slices/Api/booking.Api';
-import Loader from '@utils/Loader';
-import { useSelector } from 'react-redux';
-import RatingComponent from './rating';
+import {
+  useGetSinleBookingQuery,
+  useUpdateStatusMutation,
+} from "@slices/Api/booking.Api";
+import { useCreateNotificationMutation } from "@slices/Api/notification.Api";
+import Loader from "@utils/Loader";
+import { FaComments, FaTimes } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+import BookingDetailLayout from "../BookingDetailLayout";
+import { chatHref, normalizeStatus } from "../bookingUtils";
+import RatingComponent from "./rating";
+
 const CustomerBooking = () => {
-    const bookingId = window.location.pathname.split('/').pop(); // Assuming the bookingId is the last part of the URL
-    const {data:booking, isLoading} = useGetSinleBookingQuery(bookingId, {
-        refetchOnMountOrArgChange: true,
-        refetchOnFocus: true,
-        refetchOnReconnect: true,
-    });
-    const UserRole = useSelector((state) => state.auth?.userInfo?.role);
- if (isLoading) {
-    <Loader text="Loading Data please wait" />
- }
-  if (!booking) {
-    return <p className="text-center text-red-500">Booking not found.</p>;
+  const { bookingId } = useParams();
+  const { data: booking, isLoading } = useGetSinleBookingQuery(bookingId, {
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
+    skip: !bookingId,
+  });
+  const [updateOrderStatus, { isLoading: isCancelling }] =
+    useUpdateStatusMutation();
+  const [createNotification] = useCreateNotificationMutation();
+
+  if (isLoading) {
+    return <Loader text="Loading Data please wait" />;
   }
 
-    const {
-      _id: orderId,
-      bookingDate,
-      status,
-      paymentMethod,
-      serviceId: { name: serviceName,_id },
-      addressId: { street, city, state, zipCode, country },
-     providerId : { name,imageUrl, contact,spDetails,_id:P_id},
-     userId
-    } = booking;
+  if (!booking) {
+    return <p className="p-6 text-center text-red-500">Booking not found.</p>;
+  }
 
-    const detail=  spDetails.find((detail)=> detail.serviceId ===_id  )
-    const price = detail.price;
+  const {
+    _id: orderId,
+    bookingDate,
+    status,
+    paymentMethod,
+    totalPrice,
+    serviceId: { name: serviceName, _id: serviceId } = {},
+    addressId = {},
+    providerId: {
+      name,
+      imageUrl,
+      contact,
+      spDetails = [],
+      _id: providerId,
+    } = {},
+  } = booking;
+
+  const detail = spDetails?.find(
+    (d) => String(d.serviceId) === String(serviceId),
+  );
+  const price = totalPrice ?? detail?.price ?? 0;
+  const rating = detail?.rating;
+  const statusKey = normalizeStatus(status);
+  const canCancel = statusKey === "pending" || statusKey === "confirmed";
+  const href = chatHref(contact);
+
+  const handleCancel = async () => {
+    if (!window.confirm("Cancel this booking?")) return;
+    try {
+      const updated = await updateOrderStatus({
+        bookingId: orderId,
+        orderStatus: "cancelled",
+      }).unwrap();
+      const notifyUserId =
+        updated?.booking?.providerId?._id ||
+        updated?.booking?.providerId ||
+        providerId;
+      if (notifyUserId) {
+        createNotification({
+          userId: notifyUserId,
+          title: "Booking Cancelled",
+          message: `A customer cancelled the booking for ${serviceName}.`,
+          type: "booking",
+          bookingId: orderId,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to cancel booking", err);
+      alert(err?.data?.message || "Could not cancel booking.");
+    }
+  };
 
   return (
-    <>
-    <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-6 border-2 border-gray-200 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-3 m-3 max-w-3xl mx-auto`}>
-                      <img
-                        src={imageUrl || ProfileImage}
-                        alt={name}
-                        className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 shadow-sm"
-                      />
-    
-                      <div className="flex-1 space-y-2 text-gray-700">
-                        <div className="flex justify-between items-center">
-                          <p className="text-xl font-semibold">
-                          <strong>Service: </strong> {serviceName}
-                        </p>
-                          <span
-                            className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                              status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : status === 'Completed'
-                                ? 'bg-green-100 text-green-700'
-                                :status ==='Confirmed'?
-                                `bg-purple-100 text-purple-700`
-                          
-                                :'bg-red-100 text-red-700'
-                            }`}
-                          >
-                            {status.toUpperCase()}
-                          </span>
-                        </div>
-    
-                        <p className="flex items-center gap-2 text-sm">
-                          <FaPhoneAlt className="text-gray-500" />
-                          {contact} 
-                        </p>
-                          <h2 className="flex items-center gap-2 text-sm"><strong>{name}</strong></h2>
-    
-                        <p className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                          <FaRupeeSign className="text-green-500" />
-                          {price}
-                        </p>
-    
-                        <p className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaCalendarAlt />
-                          {new Date(bookingDate).toLocaleString()}
-                        </p>
-    
-                        <p className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                         
-                          {paymentMethod === 'COD' ? 'Cash on Delivery' : paymentMethod}
-                        </p>
-                        <p className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaMapMarkerAlt />
-                          {street}, {city}, {state}, {zipCode}, {country}
-                        </p>
-                         <div className="flex items-center">
-                       {status === 'Completed' && <RatingComponent bookingId={_id} providerId={P_id} serviceId={_id}/>}
-                        </div>
-                      </div>
-                    </div>
-    </>
+    <BookingDetailLayout
+      serviceName={serviceName}
+      status={status}
+      bookingDate={bookingDate}
+      person={{ name, imageUrl, contact, rating }}
+      personLabel="Service Provider"
+      address={addressId}
+      price={price}
+      paymentMethod={paymentMethod}
+      actions={
+        <div className="flex flex-col gap-3">
+          {href ? (
+            <a
+              href={href}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-purple-700"
+            >
+              <FaComments />
+              Chat with {name?.split(" ")[0] || "Provider"}
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600/50 px-4 py-3 text-sm font-bold text-white"
+            >
+              <FaComments />
+              Chat unavailable
+            </button>
+          )}
+          {canCancel && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className="inline-flex w-full items-center justify-center gap-2 px-2 py-2 text-sm font-semibold text-slate-500 transition hover:text-rose-600 disabled:opacity-50"
+            >
+              <FaTimes />
+              {isCancelling ? "Cancelling..." : "Cancel Booking"}
+            </button>
+          )}
+        </div>
+      }
+      footer={
+        statusKey === "completed" && (
+          <RatingComponent
+            bookingId={orderId}
+            providerId={providerId}
+            serviceId={serviceId}
+          />
+        )
+      }
+    />
   );
-}
+};
 
 export default CustomerBooking;

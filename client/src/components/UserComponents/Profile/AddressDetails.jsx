@@ -1,48 +1,70 @@
-import { useGetAddressByIdQuery } from "@slices/Api/address.Api";
+import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { useGetAddressByIdQuery } from "@slices/Api/address.Api";
+import AddressComponent from "@utils/AddressComponent";
 
-import DataRow from "@components/Utils/DataRow";
+const AddressDetails = () => {
+  const [isEditing, setIsEditing] = useState(false);
+  const userId = useSelector((state) => state.auth?.userInfo?._id);
+  const {
+    data: Address,
+    isLoading,
+    error,
+  } = useGetAddressByIdQuery(userId, {
+    skip: !userId,
+  });
+  const address = Address?.[0];
 
+  const initialData = useMemo(
+    () => ({
+      fullName: address?.fullName || "",
+      phone: address?.phone || "",
+      street: address?.street || "",
+      city: address?.city || "",
+      state: address?.state || "",
+      zipCode: address?.zipCode || "",
+      country: address?.country || "India",
+    }),
+    [address],
+  );
 
-export const AddressDetails = () => {
-  
- const UserId = useSelector((state)=>state.auth?.userInfo._id);
- const {data:Address,isloading,error} = useGetAddressByIdQuery(UserId);
- const address= Address?.[0];
+  return (
+    <div className="w-full min-h-40 rounded-lg border border-slate-200 bg-white p-4 md:p-6">
+      {isLoading && <p>Loading Address Data</p>}
+      {error && !Address && <p>Failed to Load Data</p>}
 
- return (
-    <>
-    {isloading && <p>Loading Address Data</p>}
-    {error && <p>Failed to Load Data</p>}
-   
-    <div className={`shadow-lg min-h-40 rounded-lg p-3 sm:max-w-2xl mx-1 mt-3 w-full bg-gray-100
-       ${isloading||error}:hidden`}>
-<h1 className='text-center text-gray-900 mb-3 flex  justify-between'>
-<p className='text-3xl font-bold'> 
-        AddressDetails</p>
-        <Link to="/edit" state={{ section: "address" }} className="text-blue-700">Edit</Link>
+      <div className="mb-3 flex items-center justify-between text-gray-900">
+        <h2 className="text-3xl font-bold">Address Details</h2>
+        {!isEditing ? (
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
+            className="font-semibold text-blue-700 hover:underline"
+          >
+            Edit
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsEditing(false)}
+            className="font-semibold text-slate-600 hover:underline"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
 
-</h1>
-    
-            <DataRow label={"Street"}
-            value={address?.street}/>
-
-            <DataRow label={"City"}
-            value= {address?.city} />
-
-            <DataRow label={"State"}
-            value={address?.state}  />
-
-            <DataRow label={"Country"}
-            value={address?.country}/>
-
-            <DataRow label={"ZipCode"}
-            value={address?.zipCode}/>
-    
+      <AddressComponent
+        key={`${address?._id || "address"}-${isEditing}`}
+        initialData={initialData}
+        readOnly={!isEditing}
+        redirectOnSuccess={false}
+        showActions={isEditing}
+        submitLabel="Save Address"
+        onSuccess={() => setIsEditing(false)}
+      />
     </div>
-    </>
-  )
-}
+  );
+};
 
 export default AddressDetails;

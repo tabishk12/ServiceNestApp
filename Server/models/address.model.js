@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const addressSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'UserModel',
+      ref: "UserModel",
       required: true,
     },
     fullName: {
@@ -30,7 +30,7 @@ const addressSchema = new mongoose.Schema(
     },
     country: {
       type: String,
-      default: 'India',
+      default: "India",
       required: true,
     },
     zipCode: {
@@ -40,7 +40,7 @@ const addressSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export default mongoose.model('Address', addressSchema);
+export default mongoose.model("Address", addressSchema);

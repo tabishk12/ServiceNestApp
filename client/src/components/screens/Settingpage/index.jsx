@@ -2,22 +2,22 @@ import React, { use } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { saveAddress } from "@slices/address.slice.js";
 import { useUpdateAddressMutation } from "@slices/Api/address.Api";
-import AddressForm from "@components/utils/AddressComponent";
+import AddressForm from "@components/Utils/AddressComponent";
 import ContactComponent from "@utils/ContactComponent";
-import {useGetAddressByIdQuery} from "@slices/Api/address.Api";
+import { useGetAddressByIdQuery } from "@slices/Api/address.Api";
 
 const SettingsPage = () => {
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.auth?.userInfo);
   const userId = userInfo?._id;
-  const{data:Address}= useGetAddressByIdQuery(userId);
+  const { data: Address } = useGetAddressByIdQuery(userId);
   const address = useSelector((state) => state.address?.address) || {
     fullName: Address?.[0]?.fullName || "",
-    phone: Address?.[0]?.phone||"",
+    phone: Address?.[0]?.phone || "",
     street: Address?.[0]?.street || "",
-    city:Address?.[0]?.city || "",
-    state:Address?.[0]?.state || "",
-    zipCode:Address?.[0]?.zipCode || "",
+    city: Address?.[0]?.city || "",
+    state: Address?.[0]?.state || "",
+    zipCode: Address?.[0]?.zipCode || "",
     country: "India",
   };
 
@@ -36,7 +36,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="max-w-5xl md:mx-auto p-4 sm:mx-10 mt-10 bg-white shadow rounded-lg">
+    <div className="max-w-5xl md:mx-auto p-4 sm:mx-10 mt-10 bg-white shadow rounded-lg h-auto mb-10">
       <h2 className="text-2xl font-semibold mb-4">Account Settings</h2>
 
       {/* Profile Section (same as before) */}
@@ -69,15 +69,14 @@ const SettingsPage = () => {
           submitLabel={isLoading ? "Saving..." : "Save Changes"}
         />
       </div>
- <div className="border border-1 p-3 mb-6 bg-gray-100 shadow  rounded-xl">
+      <div className="border border-1 p-3 mb-6 bg-gray-100 shadow  rounded-xl">
         <h3 className="text-xl font-medium mb-2">Details</h3>
-<ContactComponent
+        <ContactComponent
           initialData={userInfo?.contact || {}}
           onSubmit={handleSave}
           submitLabel={isLoading ? "Saving..." : "Save Contact"}
         />
-
- </div>
+      </div>
       {/* Change Password Placeholder */}
       <div className="border border-1 p-3 mb-6 bg-gray-100 shadow  rounded-xl">
         <h3 className="text-lg font-medium mb-2">Change Password</h3>
@@ -89,7 +88,8 @@ const SettingsPage = () => {
       <div className="border border-1 p-3 mb-6 bg-gray-100 shadow  rounded-xl">
         <h3 className="text-lg font-medium mb-2">Delete Account</h3>
         <p className="text-sm text-red-600">
-          Deleting your account is permanent and cannot be undone. Please contact support for assistance.
+          Deleting your account is permanent and cannot be undone. Please
+          contact support for assistance.
         </p>
         <button
           className="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"

@@ -1,17 +1,20 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from "react-router-dom";
 
-import Footer from '@components/Footer';
-import Header from '@components/Header';
+import Footer from "@components/Footer";
+import Header from "@components/Header";
 
 const Layout = () => {
+  const { pathname } = useLocation();
+  const hideFooter = pathname === "/login" || pathname === "/register";
+
   return (
-    <div className='flex min-h-screen flex-col bg-slate-100'>
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <div className='flex-grow'>
+      <div className="flex-grow">
         <Outlet />
       </div>
 
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 };

@@ -1,17 +1,17 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  selectedService: null
+  selectedService: null,
 };
 
 const serviceSlice = createSlice({
-  name: 'service',
+  name: "service",
   initialState,
   reducers: {
     setSelectedService: (state, action) => {
       state.selectedService = action.payload;
-    }
-  }
+    },
+  },
 });
 
 export const { setSelectedService } = serviceSlice.actions;

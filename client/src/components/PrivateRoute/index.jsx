@@ -11,7 +11,7 @@ const PrivateRoute = () => {
 
   // ✅ safer query (skip when no user)
   const { data, isSuccess } = useGetNotificationsQuery(
-    userInfo?._id ?? skipToken
+    userInfo?._id ?? skipToken,
   );
 
   // ✅ normalize: backend may return { notifications: [...] }

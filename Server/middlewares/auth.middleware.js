@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-import UserModel from '../models/user.model.js';
+import UserModel from "../models/user.model.js";
 
 const protect = async (req, res, next) => {
   let token;
@@ -10,16 +10,16 @@ const protect = async (req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await UserModel.findById(decoded.id).select('-password');
+      req.user = await UserModel.findById(decoded.id).select("-password");
       next();
     } catch (error) {
       console.error(error);
       res.status(401);
-      throw new Error('Not authorized, token failed');
+      throw new Error("Not authorized, token failed");
     }
   } else {
     res.status(401);
-    throw new Error('Not authorized, no token');
+    throw new Error("Not authorized, no token");
   }
 };
 
@@ -28,7 +28,7 @@ const admin = (req, res, next) => {
     next();
   } else {
     res.status(401);
-    throw new Error('Not authorized as an administrator');
+    throw new Error("Not authorized as an administrator");
   }
 };
 
